@@ -15,16 +15,19 @@ public class MainActivity extends AppCompatActivity {
 
     public void easy(View v) {
         Intent i = new Intent(this, GameActivity.class);
+        i.putExtra("difficulty","easy");
         startActivity(i);
     }
 
     public void medium(View view) {
         Intent i = new Intent(this, GameActivity.class);
+        i.putExtra("difficulty","medium");
         startActivity(i);
     }
 
     public void hard(View view) {
         Intent i = new Intent(this, GameActivity.class);
+        i.putExtra("difficulty","hard");
         startActivity(i);
     }
 }
