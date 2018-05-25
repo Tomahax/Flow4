@@ -47,8 +47,8 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         buttons = populateArray(buttons);
 
 
-        for (int i = 0; i < 5; i++) {
-            for (int k = 0; k < 5; k++) {
+        for (int i = 0; i < board.getMisparShurot(); i++) {
+            for (int k = 0; k < board.getMisparAmudot(); k++) {
                 char x = (char) (i);
                 char y = (char) (k);
                 String str = "ib" + x + y;
@@ -62,7 +62,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 //                buttons[i][k] = (ImageButton) v;
 
                 //creates a spot for each button
-                spots[i][k] = new Spot(1, false, i, k);
+                //spots[i][k] = new Spot(0, false, i, k);
 
                 buttons[i][k].setOnClickListener(this);
                 buttons[i][k].setClickable(true);
@@ -70,23 +70,27 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
             }
 
-            //colors the board and populates spots colors
-            try {
-                loadLevel();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
         }
 
-//        buttons[0][0] = (ImageButton) findViewById(R.id.ib00);
-//        buttons[0][0].setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                Toast.makeText(GameActivity.this, "Clicked", Toast.LENGTH_LONG).show();
-//            }
-//        });
+        //populates spots
+        for (int i = 0; i < board.getMisparShurot(); i++) {
+            for (int k = 0; k <board.getMisparAmudot(); k++) {
+                spots[i][k] = new Spot(0, false, i, k);
+            }
+        }
+
+
+        //colors the board and populates spots colors
+        try {
+            loadLevel();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
     }
+
+
+
 
     @Override
     public void onClick(View v) {
@@ -94,7 +98,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         int col = Character.getNumericValue(String.valueOf(v.getTag()).charAt(1));
 
         doTurn(row, col, spots[row][col].getColor());
-        Toast.makeText(this, row + "" + col, Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, row + "" + col, Toast.LENGTH_SHORT).show();
 
     }
 
@@ -105,14 +109,15 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         Spot spotBottom = null;
         Spot spotLeft = null;
         Spot spotRight = null;
-        if (row < 4)
+        if (row < (spots[0].length - 1))
             spotTop = spots[row + 1][col];
         if (row > 0)
             spotBottom = spots[row - 1][col];
-        if (col < 4)
+        if (col < (spots[0].length - 1))
             spotLeft = spots[row][col + 1];
         if (col > 0)
             spotRight = spots[row][col - 1];
+
 
         if (color == 0) {
             if (spotTop != null && spotTop.isStartClicked()) {
@@ -147,11 +152,13 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 setImageButtonColor(button, spotRight.getColor());
 
             }
-
-            //spot.setColor(2);
-            //button.setImageResource(R.drawable.rfull);
-        } else {
+        } else if (spot.isSorE()) {
             spot.setStartClicked(true);
+            checkWin(this.spots, this.board);
+            Toast.makeText(this, "bbbbb", Toast.LENGTH_SHORT).show();
+        } else {
+            spot.setColor(0);
+            setImageButtonColor(button, 0);
         }
     }
 
@@ -171,6 +178,100 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         } else if (color == 6) {
             button.setImageResource(R.drawable.pfull);
         }
+    }
+
+
+    public void loadLevel() throws IOException {
+        BufferedReader reader = null;
+        String strLine;
+        String[] lineParts;
+        boolean readNow = false;
+        int curRow;
+        int curCol;
+
+
+        try {
+
+            reader = new BufferedReader(new InputStreamReader(getAssets().open("info.txt")));
+
+            while ((strLine = reader.readLine()) != null && !(strLine.equals("#") && readNow)) {
+                //Toast.makeText(this, strLine, Toast.LENGTH_SHORT).show();
+
+
+                if (readNow && !(strLine.equals("#"))) {
+
+                    lineParts = strLine.split(";");
+
+                    curRow = Character.getNumericValue(lineParts[0].charAt(0));
+                    curCol = Character.getNumericValue(lineParts[1].charAt(0));
+
+                    //sets starting and ending points
+
+                    //test
+                    if (spots[curRow][curCol] == null) {
+                        Toast.makeText(this, curRow + " " + curCol, Toast.LENGTH_SHORT).show();
+                    }
+
+
+                    //sets colors images
+                    if (lineParts[2].equals("1")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.rfull);
+                        spots[curRow][curCol].setColor(1);
+                        spots[curRow][curCol].setSorE(true);
+                    } else if (lineParts[2].equals("2")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.bfull);
+                        spots[curRow][curCol].setColor(2);
+                        spots[curRow][curCol].setSorE(true);
+                    } else if (lineParts[2].equals("3")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.gfull);
+                        spots[curRow][curCol].setColor(3);
+                        spots[curRow][curCol].setSorE(true);
+                    } else if (lineParts[2].equals("4")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.yfull);
+                        spots[curRow][curCol].setColor(4);
+                        spots[curRow][curCol].setSorE(true);
+                    } else if (lineParts[2].equals("5")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.ofull);
+                        spots[curRow][curCol].setColor(5);
+                        spots[curRow][curCol].setSorE(true);
+                    } else if (lineParts[2].equals("6")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.pfull);
+                        spots[curRow][curCol].setColor(6);
+                        spots[curRow][curCol].setSorE(true);
+                    }
+                }
+
+                if (strLine.equals("level 1")) {
+                    readNow = true;
+                }
+
+            }
+            //String data []= strLine.split(";");
+
+
+            reader.close();
+
+        } catch (Exception e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+            // Toast.makeText(this, reader.readLine(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    private void checkWin(Spot[][] spots, Board board) {
+        boolean full = true;
+        int row = board.getMisparShurot();
+        int col = board.getMisparAmudot();
+
+
+        for (int i = 0; i < row; i++) {
+            for (int j = 0; j < col; j++) {
+                if (spots[i][j].getColor() == 0)
+                    full = false;
+            }
+        }
+
+        if (full)
+            Toast.makeText(this, "you win!", Toast.LENGTH_SHORT).show();
     }
 
 
@@ -223,75 +324,5 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
     }
 
-    public void loadLevel() throws IOException {
-        BufferedReader reader = null;
-        String strLine;
-        String[] lineParts;
-        boolean readNow = false;
-        int curRow;
-        int curCol;
-
-        try {
-
-            reader = new BufferedReader(new InputStreamReader(getAssets().open("info.txt")));
-
-            while ((strLine = reader.readLine()) != null && !(strLine.equals("#") && readNow)) {
-                //Toast.makeText(this, strLine, Toast.LENGTH_SHORT).show();
-
-
-                if (readNow) {
-                    lineParts = strLine.split(";");
-                    for (int i = 0; i < lineParts.length; i++) {
-                        //Toast.makeText(this, lineParts[i], Toast.LENGTH_SHORT).show();
-                    }
-
-                    curRow = Character.getNumericValue(lineParts[0].charAt(0));
-                    curCol = Character.getNumericValue(lineParts[1].charAt(0));
-
-                    //counts all spots coordinates
-                    //Toast.makeText(this, curRow + "" + curCol, Toast.LENGTH_SHORT).show();
-
-                    spots[curRow][curCol].setSorE(true);
-
-                    //sets colors images
-                    if (lineParts[2].equals("1")) {
-                        buttons[curRow][curCol].setImageResource(R.drawable.rfull);
-                        spots[curRow][curCol].setColor(1);
-                    } else if (lineParts[2].equals("2")) {
-                        buttons[curRow][curCol].setImageResource(R.drawable.bfull);
-                        spots[curRow][curCol].setColor(2);
-                    } else if (lineParts[2].equals("3")) {
-                        buttons[curRow][curCol].setImageResource(R.drawable.gfull);
-                        spots[curRow][curCol].setColor(3);
-                    } else if (lineParts[2].equals("4")) {
-                        buttons[curRow][curCol].setImageResource(R.drawable.yfull);
-                        spots[curRow][curCol].setColor(4);
-                    } else if (lineParts[2].equals("5")) {
-                        buttons[curRow][curCol].setImageResource(R.drawable.ofull);
-                        spots[curRow][curCol].setColor(5);
-                    } else if (lineParts[2].equals("6")) {
-                        buttons[curRow][curCol].setImageResource(R.drawable.pfull);
-                        spots[curRow][curCol].setColor(6);
-                    }
-                }
-
-                if (strLine.equals("level 1")) {
-                    readNow = true;
-                }
-
-            }
-            //String data []= strLine.split(";");
-
-
-            reader.close();
-
-        } catch (
-                Exception e)
-
-        {
-            File f = new File("info.txt");
-            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
-        }
-    }
 
 }
