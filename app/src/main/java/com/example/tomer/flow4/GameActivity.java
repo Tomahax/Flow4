@@ -1,11 +1,16 @@
 package com.example.tomer.flow4;
 
+import android.content.Intent;
 import android.content.res.AssetManager;
 import android.os.Environment;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageButton;
+import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
@@ -15,7 +20,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 
-public class GameActivity extends AppCompatActivity implements View.OnClickListener {
+public class GameActivity extends AppCompatActivity implements View.OnClickListener, AdapterView.OnItemClickListener {
 
     private ImageButton buttons[][];
     private Spot spots[][];
@@ -23,13 +28,31 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     private String difficulty;
     private GameManager manager;
 
+    private String curLevel = "level 1";
+
+
+    //List view setup
+    private ListView lst;
+    String[] levels = {"level 1", "level 2", "level 3", "level 4", "level 5", "level 6", "level 7", "level 8", "level 9", "level 10"};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_game);
-
 
         difficulty = getIntent().getExtras().getString("difficulty");
+
+        if (difficulty.equals("easy"))
+            setContentView(R.layout.activity_game);
+        else if (difficulty.equals("medium"))
+            setContentView(R.layout.activity_game_m);
+        else
+            setContentView(R.layout.activity_game_h);
+
+        //Setting up the ListView items
+        lst = (ListView) findViewById(R.id.list_levels);
+        ArrayAdapter<String> arrayAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, levels);
+        lst.setAdapter(arrayAdapter);
+        lst.setOnItemClickListener(this);
 
 
         if (difficulty.equals("easy")) {
@@ -74,7 +97,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
         //populates spots
         for (int i = 0; i < board.getMisparShurot(); i++) {
-            for (int k = 0; k <board.getMisparAmudot(); k++) {
+            for (int k = 0; k < board.getMisparAmudot(); k++) {
                 spots[i][k] = new Spot(0, false, i, k);
             }
         }
@@ -90,7 +113,17 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-
+    //Selects pressed level and calls loadLevel() with the new level
+    @Override
+    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+        TextView tv = (TextView) view;
+        this.curLevel = tv.getText().toString();
+        try {
+            loadLevel();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
     @Override
     public void onClick(View v) {
@@ -182,6 +215,9 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
 
     public void loadLevel() throws IOException {
+        //resets the board to be empty
+        ResetBoard();
+
         BufferedReader reader = null;
         String strLine;
         String[] lineParts;
@@ -192,7 +228,13 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
         try {
 
-            reader = new BufferedReader(new InputStreamReader(getAssets().open("info.txt")));
+            //which difficulty?
+            if(difficulty.equals("easy"))
+                reader = new BufferedReader(new InputStreamReader(getAssets().open("info.txt")));
+            else if(difficulty.equals("medium"))
+                reader = new BufferedReader(new InputStreamReader(getAssets().open("infom.txt")));
+            else
+                reader = new BufferedReader(new InputStreamReader(getAssets().open("infoh.txt")));
 
             while ((strLine = reader.readLine()) != null && !(strLine.equals("#") && readNow)) {
                 //Toast.makeText(this, strLine, Toast.LENGTH_SHORT).show();
@@ -241,7 +283,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     }
                 }
 
-                if (strLine.equals("level 1")) {
+                if (strLine.equals(this.curLevel)) {
                     readNow = true;
                 }
 
@@ -270,47 +312,78 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             }
         }
 
-        if (full)
+        if (full) {
             Toast.makeText(this, "you win!", Toast.LENGTH_SHORT).show();
+            startService(new Intent(this, MyService.class));
+        }
     }
 
 
     public ImageButton[][] populateArray(ImageButton[][] buttons) {
-        buttons[0][0] = (ImageButton) findViewById(R.id.ib00);
-        buttons[0][1] = (ImageButton) findViewById(R.id.ib01);
-        buttons[0][2] = (ImageButton) findViewById(R.id.ib02);
-        buttons[0][3] = (ImageButton) findViewById(R.id.ib03);
-        buttons[0][4] = (ImageButton) findViewById(R.id.ib04);
-        buttons[1][0] = (ImageButton) findViewById(R.id.ib10);
-        buttons[1][1] = (ImageButton) findViewById(R.id.ib11);
-        buttons[1][2] = (ImageButton) findViewById(R.id.ib12);
-        buttons[1][3] = (ImageButton) findViewById(R.id.ib13);
-        buttons[1][4] = (ImageButton) findViewById(R.id.ib14);
-        buttons[2][0] = (ImageButton) findViewById(R.id.ib20);
-        buttons[2][1] = (ImageButton) findViewById(R.id.ib21);
-        buttons[2][2] = (ImageButton) findViewById(R.id.ib22);
-        buttons[2][3] = (ImageButton) findViewById(R.id.ib23);
-        buttons[2][4] = (ImageButton) findViewById(R.id.ib24);
-        buttons[3][0] = (ImageButton) findViewById(R.id.ib30);
-        buttons[3][1] = (ImageButton) findViewById(R.id.ib31);
-        buttons[3][2] = (ImageButton) findViewById(R.id.ib32);
-        buttons[3][3] = (ImageButton) findViewById(R.id.ib33);
-        buttons[3][4] = (ImageButton) findViewById(R.id.ib34);
-        buttons[4][0] = (ImageButton) findViewById(R.id.ib40);
-        buttons[4][1] = (ImageButton) findViewById(R.id.ib41);
-        buttons[4][2] = (ImageButton) findViewById(R.id.ib42);
-        buttons[4][3] = (ImageButton) findViewById(R.id.ib43);
-        buttons[4][4] = (ImageButton) findViewById(R.id.ib44);
+        if (this.difficulty.equals("easy")) {
+            buttons[0][0] = (ImageButton) findViewById(R.id.ib00);
+            buttons[0][1] = (ImageButton) findViewById(R.id.ib01);
+            buttons[0][2] = (ImageButton) findViewById(R.id.ib02);
+            buttons[0][3] = (ImageButton) findViewById(R.id.ib03);
+            buttons[0][4] = (ImageButton) findViewById(R.id.ib04);
+            buttons[1][0] = (ImageButton) findViewById(R.id.ib10);
+            buttons[1][1] = (ImageButton) findViewById(R.id.ib11);
+            buttons[1][2] = (ImageButton) findViewById(R.id.ib12);
+            buttons[1][3] = (ImageButton) findViewById(R.id.ib13);
+            buttons[1][4] = (ImageButton) findViewById(R.id.ib14);
+            buttons[2][0] = (ImageButton) findViewById(R.id.ib20);
+            buttons[2][1] = (ImageButton) findViewById(R.id.ib21);
+            buttons[2][2] = (ImageButton) findViewById(R.id.ib22);
+            buttons[2][3] = (ImageButton) findViewById(R.id.ib23);
+            buttons[2][4] = (ImageButton) findViewById(R.id.ib24);
+            buttons[3][0] = (ImageButton) findViewById(R.id.ib30);
+            buttons[3][1] = (ImageButton) findViewById(R.id.ib31);
+            buttons[3][2] = (ImageButton) findViewById(R.id.ib32);
+            buttons[3][3] = (ImageButton) findViewById(R.id.ib33);
+            buttons[3][4] = (ImageButton) findViewById(R.id.ib34);
+            buttons[4][0] = (ImageButton) findViewById(R.id.ib40);
+            buttons[4][1] = (ImageButton) findViewById(R.id.ib41);
+            buttons[4][2] = (ImageButton) findViewById(R.id.ib42);
+            buttons[4][3] = (ImageButton) findViewById(R.id.ib43);
+            buttons[4][4] = (ImageButton) findViewById(R.id.ib44);
 
-        if (this.difficulty.equals("medium")) {
-            buttons[5][4] = (ImageButton) findViewById(R.id.ib44);
-            buttons[5][4] = (ImageButton) findViewById(R.id.ib44);
-            buttons[5][4] = (ImageButton) findViewById(R.id.ib44);
-            buttons[5][4] = (ImageButton) findViewById(R.id.ib44);
-            buttons[5][4] = (ImageButton) findViewById(R.id.ib44);
-
-            //needs fixing
-
+        } else if (this.difficulty.equals("medium")) {
+            buttons[0][0] = (ImageButton) findViewById(R.id.ib00);
+            buttons[0][1] = (ImageButton) findViewById(R.id.ib01);
+            buttons[0][2] = (ImageButton) findViewById(R.id.ib02);
+            buttons[0][3] = (ImageButton) findViewById(R.id.ib03);
+            buttons[0][4] = (ImageButton) findViewById(R.id.ib04);
+            buttons[0][5] = (ImageButton) findViewById(R.id.ib05);
+            buttons[1][0] = (ImageButton) findViewById(R.id.ib10);
+            buttons[1][1] = (ImageButton) findViewById(R.id.ib11);
+            buttons[1][2] = (ImageButton) findViewById(R.id.ib12);
+            buttons[1][3] = (ImageButton) findViewById(R.id.ib13);
+            buttons[1][4] = (ImageButton) findViewById(R.id.ib14);
+            buttons[1][5] = (ImageButton) findViewById(R.id.ib15);
+            buttons[2][0] = (ImageButton) findViewById(R.id.ib20);
+            buttons[2][1] = (ImageButton) findViewById(R.id.ib21);
+            buttons[2][2] = (ImageButton) findViewById(R.id.ib22);
+            buttons[2][3] = (ImageButton) findViewById(R.id.ib23);
+            buttons[2][4] = (ImageButton) findViewById(R.id.ib24);
+            buttons[2][5] = (ImageButton) findViewById(R.id.ib25);
+            buttons[3][0] = (ImageButton) findViewById(R.id.ib30);
+            buttons[3][1] = (ImageButton) findViewById(R.id.ib31);
+            buttons[3][2] = (ImageButton) findViewById(R.id.ib32);
+            buttons[3][3] = (ImageButton) findViewById(R.id.ib33);
+            buttons[3][4] = (ImageButton) findViewById(R.id.ib34);
+            buttons[3][5] = (ImageButton) findViewById(R.id.ib35);
+            buttons[4][0] = (ImageButton) findViewById(R.id.ib40);
+            buttons[4][1] = (ImageButton) findViewById(R.id.ib41);
+            buttons[4][2] = (ImageButton) findViewById(R.id.ib42);
+            buttons[4][3] = (ImageButton) findViewById(R.id.ib43);
+            buttons[4][4] = (ImageButton) findViewById(R.id.ib44);
+            buttons[4][5] = (ImageButton) findViewById(R.id.ib45);
+            buttons[5][0] = (ImageButton) findViewById(R.id.ib50);
+            buttons[5][1] = (ImageButton) findViewById(R.id.ib51);
+            buttons[5][2] = (ImageButton) findViewById(R.id.ib52);
+            buttons[5][3] = (ImageButton) findViewById(R.id.ib53);
+            buttons[5][4] = (ImageButton) findViewById(R.id.ib54);
+            buttons[5][5] = (ImageButton) findViewById(R.id.ib55);
         }
         if (this.difficulty.equals("hard")) {
             buttons[4][4] = (ImageButton) findViewById(R.id.ib44);
@@ -318,10 +391,22 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             buttons[4][4] = (ImageButton) findViewById(R.id.ib44);
             buttons[4][4] = (ImageButton) findViewById(R.id.ib44);
             buttons[4][4] = (ImageButton) findViewById(R.id.ib44);
+
+            //needs fixing
         }
         return buttons;
 
 
+    }
+
+
+    public void ResetBoard() {
+        for (int i = 0; i < board.getMisparShurot(); i++) {
+            for (int k = 0; k < board.getMisparAmudot(); k++) {
+                spots[i][k].Reset();
+                buttons[i][k].setImageResource(R.drawable.black1);
+            }
+        }
     }
 
 
