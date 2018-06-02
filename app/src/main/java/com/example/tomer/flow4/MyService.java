@@ -8,9 +8,6 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.support.annotation.Nullable;
 
-/**
- * Created by tomer on 25/05/2018.
- */
 
 public class MyService extends Service {
 

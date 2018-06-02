@@ -12,6 +12,9 @@ import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -56,8 +59,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
     GifImageView animationImageView;
     AnimationDrawable winAnimation;
 
-    Handler mHandler = new Handler()
-    {
+    Handler mHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             animationImageView.setVisibility(View.VISIBLE);
@@ -67,7 +69,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
 
     //List view setup
     private ListView lst;
-    String[] levels = {"level 1", "level 2", "level 3", "level 4", "level 5"};
+    String[] levels = {"level 1", "level 2", "level 3", "level 4", "level 5", "level 6", "level 7", "level 8", "level 9", "level 10"};
 
 
     @Override
@@ -99,9 +101,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 v.setVisibility(View.INVISIBLE);
             }
         });
-
-
-
 
 
         //Setting up the ListView items
@@ -182,6 +181,43 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+
+    //Setting up the options menu
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.options_menu, menu);
+        return super.onCreateOptionsMenu(menu);
+
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        if (item.getItemId() == R.id.main_menu_menu_item) {
+            Intent i = new Intent(this, MainActivity.class);
+            startActivity(i);
+        } else if (item.getItemId() == R.id.animation_menu_item) {
+            //Display animation
+            mAnimationRunnable.run();
+        } else if (item.getItemId() == R.id.reset_menu_item) {
+            try {
+                loadLevel();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        } else if (item.getItemId() == R.id.solution_menu_item) {
+            try {
+                showSolution();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return true;
+    }
+
+
+    //what happens if the player clicks an ImageView
     @Override
     public void onClick(View v) {
         int row = Character.getNumericValue(String.valueOf(v.getTag()).charAt(0));
@@ -300,6 +336,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
+    //returns string with last finish time
     public String readFinishTime() {
         try {
             String Message;
@@ -320,7 +357,7 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
         return "Failed to read file";
     }
 
-
+    //displays level on screen and loads info to corresponding spots
     public void loadLevel() throws IOException {
         //resets the board to be empty
         ResetBoard();
@@ -356,13 +393,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                     curRow = Character.getNumericValue(lineParts[0].charAt(0));
                     curCol = Character.getNumericValue(lineParts[1].charAt(0));
 
-                    //sets starting and ending points
-
-                    //test
-                    if (spots[curRow][curCol] == null) {
-                        Toast.makeText(this, curRow + " " + curCol, Toast.LENGTH_SHORT).show();
-                    }
-
 
                     //sets colors images
                     if (lineParts[2].equals("1")) {
@@ -397,9 +427,75 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
                 }
 
             }
-            //String data []= strLine.split(";");
+
+            reader.close();
+
+        } catch (Exception e) {
+            Toast.makeText(this, e.getMessage(), Toast.LENGTH_LONG).show();
+            // Toast.makeText(this, reader.readLine(), Toast.LENGTH_LONG).show();
+        }
+    }
+
+    //Displays Solution
+    public void showSolution() throws IOException {
+        //resets the board to be empty
+        ResetBoard();
 
 
+        BufferedReader reader = null;
+        String strLine;
+        String[] lineParts;
+        boolean readNow = false;
+        int curRow;
+        int curCol;
+
+
+        try {
+
+            //which difficulty?
+            if (difficulty.equals("easy"))
+                reader = new BufferedReader(new InputStreamReader(getAssets().open("solutionE.txt")));
+            else if (difficulty.equals("medium"))
+                reader = new BufferedReader(new InputStreamReader(getAssets().open("solutionM.txt")));
+            else
+                reader = new BufferedReader(new InputStreamReader(getAssets().open("solutionH.txt")));
+
+            while ((strLine = reader.readLine()) != null && !(strLine.equals("#") && readNow)) {
+
+                if (readNow && !(strLine.equals("#"))) {
+
+                    lineParts = strLine.split(";");
+
+                    curRow = Character.getNumericValue(lineParts[0].charAt(0));
+                    curCol = Character.getNumericValue(lineParts[1].charAt(0));
+
+
+                    //test
+                    if (spots[curRow][curCol] == null) {
+                        Toast.makeText(this, curRow + " " + curCol, Toast.LENGTH_SHORT).show();
+                    }
+
+
+                    //sets colors images
+                    if (lineParts[2].equals("1")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.rfull);
+                    } else if (lineParts[2].equals("2")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.bfull);
+                    } else if (lineParts[2].equals("3")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.gfull);
+                    } else if (lineParts[2].equals("4")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.yfull);
+                    } else if (lineParts[2].equals("5")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.ofull);
+                    } else if (lineParts[2].equals("6")) {
+                        buttons[curRow][curCol].setImageResource(R.drawable.pfull);
+                    }
+                }
+
+                if (strLine.equals(this.curLevel)) {
+                    readNow = true;
+                }
+            }
             reader.close();
 
         } catch (Exception e) {
@@ -433,7 +529,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             mAnimationRunnable.run();
         }
     }
-
 
 
     public ImageButton[][] populateArray(ImageButton[][] buttons) {
@@ -606,8 +701,6 @@ public class GameActivity extends AppCompatActivity implements View.OnClickListe
             mHandler.sendEmptyMessage(0);
         }
     };
-
-
 
 
 }

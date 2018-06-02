@@ -1,8 +1,5 @@
 package com.example.tomer.flow4;
 
-/**
- * Created by tomer on 24/05/2018.
- */
 
 public class Spot {
 

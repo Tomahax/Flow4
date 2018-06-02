@@ -2,8 +2,8 @@ package com.example.tomer.flow4;
 
 public class Board {
 
-    private int misparShurot = 6;
-    private int misparAmudot = 8;
+    private int misparShurot;
+    private int misparAmudot;
     private Spot boardMatrix[][];
     public static final String BoardFileName = "info.txt";
 
@@ -27,9 +27,9 @@ public class Board {
 
         this.misparShurot = row;
         this.misparAmudot = col;
-        // פעולה לאתחול לוח
+
         this.boardMatrix = new Spot[misparAmudot][misparAmudot];
-        // אתחול הלוח
+
         for (int i = 0; i < this.boardMatrix.length; i++) {
             for (int k = 0; k < this.boardMatrix[i].length; k++) {
                // this.boardMatrix[i][k] = new Spot("red", false, i, k);
